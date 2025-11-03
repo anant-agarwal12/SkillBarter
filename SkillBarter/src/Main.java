@@ -5,7 +5,9 @@ public class Main {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ignored) {}
-
-        SwingUtilities.invokeLater(() -> new ui.MainWindow().setVisible(true));
+        
+        SwingUtilities.invokeLater(() -> {
+            new ui.MainWindow().setVisible(true);
+        });
     }
 }
