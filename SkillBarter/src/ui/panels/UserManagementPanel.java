@@ -1,5 +1,8 @@
 package ui.panels;
 
+import ui.core.Theme;
+import ui.components.ModernButton;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -13,44 +16,63 @@ public class UserManagementPanel extends JPanel {
     private JPasswordField passwordField;
     private JLabel statusLabel;
 
-    // 🎨 Minimal Clean Palette
-    private final Color bgDark = new Color(18, 18, 20);
-    private final Color cardColor = new Color(28, 28, 32);
-    private final Color inputBG = new Color(38, 38, 42);
-    private final Color borderColor = new Color(60, 60, 65);
-    private final Color textColor = new Color(230, 230, 235);
-    private final Color placeholder = new Color(160, 160, 165);
-    private final Color accentBlue = new Color(0, 170, 255);
-    private final Color successGreen = new Color(40, 200, 120);
-    private final Color errorRed = new Color(220, 80, 80);
+    private final Color successGreen = new Color(100, 255, 150);
+    private final Color errorRed = new Color(255, 100, 120);
 
     public UserManagementPanel() {
         setLayout(new GridBagLayout());
-        setBackground(bgDark);
+        setOpaque(false);
 
-        JPanel card = new JPanel(new GridBagLayout());
-        card.setBackground(cardColor);
-        card.setPreferredSize(new Dimension(400, 380));
-        card.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(borderColor, 1, true),
-                new EmptyBorder(40, 40, 40, 40)
-        ));
+        // Glassmorphism card
+        JPanel card = new JPanel(new GridBagLayout()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                
+                int w = getWidth();
+                int h = getHeight();
+                int arc = 30;
+                
+                // Card background with shadow
+                g2.setColor(new Color(0, 0, 0, 8));
+                g2.fillRoundRect(2, 2, w - 4, h - 4, arc, arc);
+                
+                // Card background
+                g2.setColor(Theme.bgCard);
+                g2.fillRoundRect(0, 0, w, h, arc, arc);
+                
+                // Border
+                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.7f));
+                g2.setStroke(new BasicStroke(1.5f));
+                g2.setColor(Theme.borderLight);
+                g2.drawRoundRect(0, 0, w - 1, h - 1, arc, arc);
+            }
+        };
+        card.setOpaque(false);
+        card.setPreferredSize(new Dimension(450, 450));
+        card.setBorder(new EmptyBorder(50, 50, 50, 50));
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 5, 10, 5);
+        gbc.insets = new Insets(15, 10, 15, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridx = 0;
+        gbc.weightx = 1.0;
 
-        // ✳️ Title
+        // Title
         JLabel title = new JLabel("User Registration", SwingConstants.CENTER);
-        title.setFont(new Font("Segoe UI Semibold", Font.BOLD, 22));
-        title.setForeground(textColor);
+        title.setFont(Theme.headingS);
+        title.setForeground(Theme.textPrimary);
+        
         gbc.gridy = 0;
         gbc.gridwidth = 2;
         card.add(title, gbc);
 
         // Username
         gbc.gridy++;
+        gbc.gridwidth = 2;
         card.add(createLabeledField("Username", usernameField = new JTextField()), gbc);
 
         // Email
@@ -63,51 +85,51 @@ public class UserManagementPanel extends JPanel {
 
         // Register button
         gbc.gridy++;
-        JButton registerBtn = new JButton("Register");
-        registerBtn.setFont(new Font("Segoe UI", Font.BOLD, 15));
-        registerBtn.setBackground(accentBlue);
-        registerBtn.setForeground(Color.WHITE);
-        registerBtn.setFocusPainted(false);
-        registerBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        registerBtn.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        ModernButton registerBtn = new ModernButton("Register", ModernButton.ButtonStyle.PRIMARY);
         registerBtn.addActionListener(e -> registerUser());
         card.add(registerBtn, gbc);
 
         // Status label
         gbc.gridy++;
         statusLabel = new JLabel(" ", SwingConstants.CENTER);
-        statusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        statusLabel.setForeground(placeholder);
+        statusLabel.setFont(Theme.bodySmall);
+        statusLabel.setForeground(Theme.textMuted);
         card.add(statusLabel, gbc);
 
         add(card);
     }
 
     private JPanel createLabeledField(String labelText, JTextField field) {
-        JPanel panel = new JPanel(new BorderLayout(0, 6));
-        panel.setBackground(cardColor);
+        JPanel panel = new JPanel(new BorderLayout(0, 8));
+        panel.setOpaque(false);
 
         JLabel label = new JLabel(labelText);
-        label.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        label.setForeground(placeholder);
+        label.setFont(Theme.button);
+        label.setForeground(Theme.primary);
         panel.add(label, BorderLayout.NORTH);
 
-        field.setFont(new Font("Segoe UI", Font.PLAIN, 15));
-        field.setBackground(inputBG);
-        field.setForeground(textColor);
-        field.setCaretColor(accentBlue);
+        field.setFont(Theme.body);
+        field.setBackground(Theme.bgCard);
+        field.setForeground(Theme.textPrimary);
+        field.setCaretColor(Theme.primary);
         field.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(borderColor, 1),
-                new EmptyBorder(8, 10, 8, 10)
+                BorderFactory.createLineBorder(Theme.borderMedium, 1),
+                new EmptyBorder(10, 12, 10, 12)
         ));
 
         field.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
-                field.setBorder(BorderFactory.createLineBorder(accentBlue, 1));
+                field.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(Theme.primary, 2),
+                    new EmptyBorder(9, 11, 9, 11)
+                ));
             }
 
             public void focusLost(java.awt.event.FocusEvent evt) {
-                field.setBorder(BorderFactory.createLineBorder(borderColor, 1));
+                field.setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(Theme.borderMedium, 1),
+                    new EmptyBorder(10, 12, 10, 12)
+                ));
             }
         });
 
@@ -131,7 +153,7 @@ public class UserManagementPanel extends JPanel {
                     username, email, password
             );
 
-            URL url = new URL("http://localhost:8080/api/users");
+            URL url = new URL("http://localhost:8081/api/users");
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");

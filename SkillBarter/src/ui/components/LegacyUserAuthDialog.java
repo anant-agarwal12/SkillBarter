@@ -1,6 +1,7 @@
 package ui.components;
 
 import ui.core.UserManager;
+import ui.models.User;
 import javax.swing.*;
 import java.awt.*;
 
@@ -62,7 +63,8 @@ public class LegacyUserAuthDialog extends JDialog {
 
         JButton registerBtn = new JButton("Register");
         registerBtn.addActionListener(e -> {
-            if (userManager.register(username.getText(), new String(password.getPassword()), email.getText())) {
+            User registeredUser = userManager.register(username.getText(), new String(password.getPassword()), email.getText());
+            if (registeredUser != null) {
                 JOptionPane.showMessageDialog(this, "🎉 Registered successfully! You can now log in.");
             } else {
                 JOptionPane.showMessageDialog(this, "⚠️ Username already exists.");

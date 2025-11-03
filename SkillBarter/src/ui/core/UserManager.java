@@ -1,44 +1,41 @@
 package ui.core;
 
 import ui.models.User;
-import java.util.ArrayList;
-import java.util.List;
 
+/**
+ * Simple user manager
+ */
 public class UserManager {
-    private final List<User> users = new ArrayList<>();
-    private User currentUser = null;
-
-    public boolean register(String username, String password, String email) {
-        if (getUserByUsername(username) != null) return false; // already exists
-        users.add(new User(username, password, email));
-        return true;
+    private User currentUser;
+    private long nextUserId = 1;
+    
+    public User register(String username, String password, String email) {
+        User user = new User(nextUserId++, username, password, email);
+        currentUser = user;
+        return user;
     }
-
+    
     public boolean login(String username, String password) {
-        User user = getUserByUsername(username);
-        if (user != null && user.getPassword().equals(password)) {
-            currentUser = user;
+        // Simplified - in real app, check against database
+        if (currentUser != null && currentUser.getUsername().equals(username)) {
             return true;
         }
         return false;
     }
-
-    public void logout() {
-        currentUser = null;
-    }
-
+    
     public User getCurrentUser() {
         return currentUser;
     }
-
-    public User getUserByUsername(String username) {
-        for (User u : users) {
-            if (u.getUsername().equalsIgnoreCase(username)) return u;
-        }
-        return null;
+    
+    public Long getCurrentUserId() {
+        return currentUser != null ? currentUser.getId() : null;
     }
-
-    public List<User> getAllUsers() {
-        return users;
+    
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+    }
+    
+    public void logout() {
+        currentUser = null;
     }
 }

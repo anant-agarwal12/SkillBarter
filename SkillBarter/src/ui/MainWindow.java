@@ -1,93 +1,115 @@
 package ui;
-import ui.core.UserManager;
-import ui.panels.*;
+
 import ui.components.*;
+import ui.core.*;
+import ui.panels.*;
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.time.LocalDate;
-import java.time.YearMonth;
 
+/**
+ * Main application window
+ */
 public class MainWindow extends JFrame {
-    public final CardLayout cardLayout = new CardLayout();
-    public final JPanel cards = new JPanel(cardLayout);
-    public static final UserManager userManager = new UserManager();
-
-    // 🎨 Neon Palette
-    private final Color bgDark = Theme.bgDark;
-    private final Color cardDark = Theme.cardDark;
-    private final Color textLight = Theme.textLight;
-    private final Color neonBlue = Theme.neonBlue;
-    private final Color neonPurple = Theme.neonPurple;
-
+    public final UserManager userManager = new UserManager();
+    private final CardLayout cardLayout = new CardLayout();
+    private final JPanel cards = new JPanel(cardLayout);
+    private JLabel pointsLabel;
+    
     public MainWindow() {
-        setTitle("⚡ SkillBarter — Neon Enhanced Edition");
+        setTitle("SkillBarter - Skill Exchange Platform");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1150, 750);
+        setSize(1400, 900);
         setLocationRelativeTo(null);
+        getContentPane().setBackground(Theme.BG_PRIMARY);
         setLayout(new BorderLayout());
-        getContentPane().setBackground(bgDark);
-
-        add(createTopNav(), BorderLayout.NORTH);
-        cards.setBackground(bgDark);
-
-        // each panel will be added as a separate file soon
-        cards.add(new HomePanel(this), "HOME");
-        cards.add(new AboutPanel(), "ABOUT");
-        cards.add(new ServicesPanel(this), "SERVICES");
-        cards.add(new ModulesPanel(this), "MODULES");
-        cards.add(new ContactPanel(), "CONTACT");
-        cards.add(new UserManagementPanel(), "USERMANAGEMENT");
-
-
+        
+        // Navigation
+        add(createNavigation(), BorderLayout.NORTH);
+        
+        // Content panels
+        cards.setOpaque(false);
+        cards.setBackground(Theme.BG_PRIMARY);
+        
+        cards.add(new DashboardPanel(userManager), "DASHBOARD");
+        cards.add(new MarketplacePanel(), "MARKETPLACE");
+        cards.add(new SessionsPanel(), "SESSIONS");
+        cards.add(new WalletPanel(), "WALLET");
+        cards.add(new ProfilePanel(), "PROFILE");
+        
         add(cards, BorderLayout.CENTER);
-        add(createFooter(), BorderLayout.SOUTH);
+        
+        // Show dashboard
+        cardLayout.show(cards, "DASHBOARD");
     }
-
-    private JComponent createTopNav() {
-        JPanel nav = new JPanel(new BorderLayout()) {
-            @Override
-            protected void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                Graphics2D g2 = (Graphics2D) g;
-                GradientPaint gp = new GradientPaint(0, 0, neonPurple, getWidth(), 0, neonBlue);
-                g2.setPaint(gp);
-                g2.fillRect(0, 0, getWidth(), getHeight());
-            }
-        };
-        nav.setBorder(new EmptyBorder(12, 25, 12, 25));
-
-        JLabel brand = new JLabel("⚡ SkillBarter");
-        brand.setFont(new Font("Segoe UI", Font.BOLD, 28));
-        brand.setForeground(Color.WHITE);
-        nav.add(brand, BorderLayout.WEST);
-
-        JPanel buttons = new JPanel(new FlowLayout(FlowLayout.RIGHT, 25, 0));
-        buttons.setOpaque(false);
-        String[] names = {"Home", "About", "Services", "Modules", "UserManagement", "Contact"};
-        for (String n : names) {
-            NeonButton btn = new NeonButton(n);
-            btn.addActionListener(e -> cardLayout.show(cards, n.toUpperCase()));
-            buttons.add(btn);
+    
+    private JPanel createNavigation() {
+        JPanel nav = new JPanel(new BorderLayout());
+        nav.setOpaque(false);
+        nav.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, Theme.BORDER_NEON),
+            BorderFactory.createEmptyBorder(Theme.PADDING_MEDIUM, Theme.PADDING_XL, 
+                Theme.PADDING_MEDIUM, Theme.PADDING_XL)
+        ));
+        
+        // Logo
+        JLabel logo = new JLabel("SkillBarter");
+        logo.setFont(Theme.FONT_TITLE);
+        logo.setForeground(Theme.NEON_CYAN);
+        
+        // Nav buttons
+        JPanel navButtons = new JPanel(new FlowLayout(FlowLayout.LEFT, Theme.PADDING_MEDIUM, 0));
+        navButtons.setOpaque(false);
+        
+        String[] items = {"Dashboard", "Marketplace", "Sessions", "Wallet", "Profile"};
+        for (String item : items) {
+            NeonButton btn = new NeonButton(item);
+            btn.setNeonColor(Theme.NEON_CYAN);
+            btn.addActionListener(e -> {
+                cardLayout.show(cards, item.toUpperCase());
+                cards.revalidate();
+                cards.repaint();
+            });
+            navButtons.add(btn);
         }
-        nav.add(buttons, BorderLayout.EAST);
+        
+        // Right side
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, Theme.PADDING_MEDIUM, 0));
+        rightPanel.setOpaque(false);
+        
+        pointsLabel = new JLabel("Points: 0");
+        pointsLabel.setFont(Theme.FONT_BODY);
+        pointsLabel.setForeground(Theme.NEON_CYAN);
+        
+        rightPanel.add(pointsLabel);
+        
+        nav.add(logo, BorderLayout.WEST);
+        nav.add(navButtons, BorderLayout.CENTER);
+        nav.add(rightPanel, BorderLayout.EAST);
+        
         return nav;
     }
-
-    public void showScheduler() {
-        new CalendarDialog(this).setVisible(true);
+    
+    private JPanel createPlaceholderPanel(String title) {
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setOpaque(true);
+        panel.setBackground(Theme.BG_PRIMARY);
+        panel.setBorder(BorderFactory.createEmptyBorder(Theme.PADDING_XL, Theme.PADDING_XL, 
+            Theme.PADDING_XL, Theme.PADDING_XL));
+        
+        JLabel label = new JLabel(title);
+        label.setFont(Theme.FONT_LARGE);
+        label.setForeground(Theme.NEON_CYAN);
+        label.setHorizontalAlignment(SwingConstants.CENTER);
+        
+        panel.add(label, BorderLayout.CENTER);
+        
+        return panel;
     }
-
-    private JPanel createFooter() {
-        JPanel f = new JPanel(new BorderLayout());
-        f.setBackground(new Color(20, 20, 25));
-        f.setBorder(new EmptyBorder(10, 20, 10, 20));
-        JLabel left = new JLabel("© 2025 SkillBarter | Neon Enhanced Edition");
-        left.setForeground(new Color(160, 160, 160));
-        JLabel right = new JLabel("Built with 💙 in Java Swing");
-        right.setForeground(neonBlue);
-        f.add(left, BorderLayout.WEST);
-        f.add(right, BorderLayout.EAST);
-        return f;
+    
+    public void updatePoints(int points) {
+        if (pointsLabel != null) {
+            pointsLabel.setText("Points: " + points);
+        }
     }
 }
+
