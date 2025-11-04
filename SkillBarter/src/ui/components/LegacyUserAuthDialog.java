@@ -1,6 +1,7 @@
 package ui.components;
 
 import ui.core.UserManager;
+import ui.core.APIClient;
 import ui.models.User;
 import javax.swing.*;
 import java.awt.*;
@@ -34,11 +35,28 @@ public class LegacyUserAuthDialog extends JDialog {
 
         JButton loginBtn = new JButton("Login");
         loginBtn.addActionListener(e -> {
-            if (userManager.login(username.getText(), new String(password.getPassword()))) {
-                JOptionPane.showMessageDialog(this, "✅ Welcome, " + username.getText());
-                dispose();
-            } else {
-                JOptionPane.showMessageDialog(this, "❌ Invalid credentials");
+            String usernameText = username.getText().trim();
+            String passwordText = new String(password.getPassword());
+            
+            if (usernameText.isEmpty() || passwordText.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "❌ Please fill in all fields", 
+                    "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            try {
+                User user = APIClient.login(usernameText, passwordText);
+                if (user != null) {
+                    userManager.setCurrentUser(user);
+                    JOptionPane.showMessageDialog(this, "✅ Welcome, " + user.getUsername());
+                    dispose();
+                } else {
+                    JOptionPane.showMessageDialog(this, "❌ Invalid credentials", 
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "❌ Error: " + ex.getMessage(), 
+                    "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -63,11 +81,36 @@ public class LegacyUserAuthDialog extends JDialog {
 
         JButton registerBtn = new JButton("Register");
         registerBtn.addActionListener(e -> {
-            User registeredUser = userManager.register(username.getText(), new String(password.getPassword()), email.getText());
-            if (registeredUser != null) {
-                JOptionPane.showMessageDialog(this, "🎉 Registered successfully! You can now log in.");
-            } else {
-                JOptionPane.showMessageDialog(this, "⚠️ Username already exists.");
+            String usernameText = username.getText().trim();
+            String passwordText = new String(password.getPassword());
+            String emailText = email.getText().trim();
+            
+            if (usernameText.isEmpty() || passwordText.isEmpty() || emailText.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "❌ Please fill in all fields", 
+                    "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            if (passwordText.length() < 4) {
+                JOptionPane.showMessageDialog(this, "❌ Password must be at least 4 characters", 
+                    "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            try {
+                User registeredUser = APIClient.register(usernameText, emailText, passwordText);
+                if (registeredUser != null) {
+                    userManager.setCurrentUser(registeredUser);
+                    JOptionPane.showMessageDialog(this, "🎉 Registered successfully! You can now log in.", 
+                        "Success", JOptionPane.INFORMATION_MESSAGE);
+                    dispose();
+                } else {
+                    JOptionPane.showMessageDialog(this, "⚠️ Registration failed", 
+                        "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "❌ Error: " + ex.getMessage(), 
+                    "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
 

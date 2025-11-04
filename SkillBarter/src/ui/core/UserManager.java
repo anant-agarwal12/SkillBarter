@@ -3,25 +3,10 @@ package ui.core;
 import ui.models.User;
 
 /**
- * Simple user manager
+ * User manager with API integration
  */
 public class UserManager {
     private User currentUser;
-    private long nextUserId = 1;
-    
-    public User register(String username, String password, String email) {
-        User user = new User(nextUserId++, username, password, email);
-        currentUser = user;
-        return user;
-    }
-    
-    public boolean login(String username, String password) {
-        // Simplified - in real app, check against database
-        if (currentUser != null && currentUser.getUsername().equals(username)) {
-            return true;
-        }
-        return false;
-    }
     
     public User getCurrentUser() {
         return currentUser;
@@ -35,7 +20,28 @@ public class UserManager {
         this.currentUser = user;
     }
     
+    public boolean isLoggedIn() {
+        return currentUser != null;
+    }
+    
+    public boolean isAdmin() {
+        return currentUser != null && "ADMIN".equals(currentUser.getRole());
+    }
+    
     public void logout() {
         currentUser = null;
+    }
+    
+    public void refreshUser() {
+        if (currentUser != null && currentUser.getId() != null) {
+            try {
+                User updated = APIClient.getUserById(currentUser.getId());
+                if (updated != null) {
+                    currentUser = updated;
+                }
+            } catch (Exception e) {
+                // Silently fail - user data will be stale
+            }
+        }
     }
 }
