@@ -16,8 +16,21 @@
 ### Current Configuration
 - **Port**: 8081
 - **Database**: MySQL (localhost:3306/skillbarter)
-- **Username**: root
-- **Password**: Root@12345
 
-Update these in `application.properties` if your setup is different.
+### Database Configuration
+**⚠️ Security Note**: Never commit database credentials to version control!
+
+Update your database credentials in `src/main/resources/application.properties`:
+```properties
+spring.datasource.username=your_username
+spring.datasource.password=your_password
+```
+
+Or use environment variables:
+```properties
+spring.datasource.username=${DB_USERNAME:root}
+spring.datasource.password=${DB_PASSWORD}
+```
+
+For production, use secure configuration management (Spring Cloud Config, AWS Secrets Manager, etc.).
 

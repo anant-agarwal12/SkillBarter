@@ -14,6 +14,39 @@ public class JSONParser {
         return new HashMap<>();
     }
     
+    public static List<Map<String, Object>> parseArray(String json) {
+        List<Map<String, Object>> list = new ArrayList<>();
+        json = json.trim();
+        if (json.startsWith("[") && json.endsWith("]")) {
+            json = json.substring(1, json.length() - 1).trim();
+            if (!json.isEmpty()) {
+                // Split by objects, handling nested structures
+                int depth = 0;
+                int start = 0;
+                for (int i = 0; i < json.length(); i++) {
+                    char c = json.charAt(i);
+                    if (c == '{') depth++;
+                    else if (c == '}') {
+                        depth--;
+                        if (depth == 0) {
+                            String objStr = json.substring(start, i + 1).trim();
+                            if (!objStr.isEmpty()) {
+                                Map<String, Object> obj = parseObject(objStr);
+                                list.add(obj);
+                            }
+                            // Skip comma
+                            while (i + 1 < json.length() && (json.charAt(i + 1) == ',' || json.charAt(i + 1) == ' ')) {
+                                i++;
+                            }
+                            start = i + 1;
+                        }
+                    }
+                }
+            }
+        }
+        return list;
+    }
+    
     private static Map<String, Object> parseObject(String json) {
         Map<String, Object> map = new HashMap<>();
         json = json.substring(1, json.length() - 1).trim();
@@ -54,7 +87,7 @@ public class JSONParser {
         return map;
     }
     
-    private static List<Object> parseArray(String json) {
+    private static List<Object> parseArrayInternal(String json) {
         List<Object> list = new ArrayList<>();
         json = json.substring(1, json.length() - 1).trim();
         
@@ -86,25 +119,50 @@ public class JSONParser {
     
     private static Object parseValue(String value) {
         value = value.trim();
+        if (value.isEmpty()) {
+            return null;
+        }
+        // Handle arrays first
+        if (value.startsWith("[") && value.endsWith("]")) {
+            return parseArrayInternal(value);
+        }
+        // Handle objects
+        if (value.startsWith("{") && value.endsWith("}")) {
+            return parseObject(value);
+        }
+        // Handle strings
         if (value.startsWith("\"") && value.endsWith("\"")) {
             return value.substring(1, value.length() - 1);
-        } else if (value.equals("true")) {
+        }
+        // Handle booleans
+        if (value.equals("true")) {
             return true;
-        } else if (value.equals("false")) {
+        }
+        if (value.equals("false")) {
             return false;
-        } else if (value.equals("null")) {
+        }
+        // Handle null
+        if (value.equals("null")) {
             return null;
-        } else if (value.contains(".")) {
+        }
+        // Handle numbers
+        if (value.contains(".")) {
             try {
                 return Double.parseDouble(value);
             } catch (NumberFormatException e) {
+                // If it's not a number, return as string
                 return value;
             }
         } else {
             try {
                 return Integer.parseInt(value);
             } catch (NumberFormatException e) {
-                return Long.parseLong(value);
+                try {
+                    return Long.parseLong(value);
+                } catch (NumberFormatException e2) {
+                    // If it's not a number, return as string
+                    return value;
+                }
             }
         }
     }

@@ -24,8 +24,8 @@ public class StatCard extends JPanel {
         setLayout(new BorderLayout());
         
         JLabel iconLabel = new JLabel(icon);
-        iconLabel.setFont(new Font("Segoe UI Semibold", Font.BOLD, 18));
-        iconLabel.setForeground(accentColor);
+        iconLabel.setFont(Theme.getEmojiFont(18)); // Use Unicode-compatible font for emojis
+        // Don't set foreground color - let emojis display in their natural colors
         
         valueLabel = new JLabel(value);
         valueLabel.setFont(Theme.headingM);

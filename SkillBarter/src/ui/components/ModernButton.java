@@ -28,7 +28,14 @@ public class ModernButton extends JButton {
         setBorderPainted(false);
         setFocusPainted(false);
         setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        setFont(Theme.button);
+        
+        // Check if text contains emojis - use emoji font if so
+        if (containsEmojis(text)) {
+            setFont(Theme.getEmojiFont(14)); // Use Unicode-compatible font for emojis
+        } else {
+            setFont(Theme.button);
+        }
+        
         setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
         
         addMouseListener(new MouseAdapter() {
@@ -57,6 +64,28 @@ public class ModernButton extends JButton {
                 repaint();
             }
         });
+    }
+    
+    /**
+     * Check if text contains emoji characters
+     */
+    private boolean containsEmojis(String text) {
+        if (text == null || text.isEmpty()) return false;
+        
+        // Check for common emoji ranges
+        for (char c : text.toCharArray()) {
+            int codePoint = (int) c;
+            // Emoji ranges in Unicode
+            if (codePoint >= 0x1F300 && codePoint <= 0x1F9FF) return true; // Emoticons
+            if (codePoint >= 0x1F600 && codePoint <= 0x1F64F) return true; // Emoticons
+            if (codePoint >= 0x1F900 && codePoint <= 0x1F9FF) return true; // Supplemental Symbols
+            if (codePoint >= 0x2600 && codePoint <= 0x26FF) return true; // Miscellaneous Symbols
+            if (codePoint >= 0x2700 && codePoint <= 0x27BF) return true; // Dingbats
+            if (codePoint >= 0x1F680 && codePoint <= 0x1F6FF) return true; // Transport & Map
+            if (codePoint >= 0x1F1E0 && codePoint <= 0x1F1FF) return true; // Flags
+            if (codePoint >= 0x1FA00 && codePoint <= 0x1FAFF) return true; // Extended
+        }
+        return false;
     }
     
     @Override
@@ -117,15 +146,20 @@ public class ModernButton extends JButton {
                     g2.setColor(new Color(0, 0, 0, 0)); // Transparent
                 }
                 g2.fillRoundRect(0, 0, w, h, Theme.radiusM, Theme.radiusM);
-                // Always use visible text color - prioritize foreground if explicitly set, otherwise use textSecondary
-                Color textColor = Theme.textSecondary; // Default to visible color
-                if (getForeground() != null && !getForeground().equals(Color.BLACK) && !getForeground().equals(new Color(0, 0, 0, 0))) {
-                    textColor = getForeground();
+                // For emoji buttons, don't set text color - let emojis display naturally
+                if (!containsEmojis(getText())) {
+                    Color textColor = Theme.textSecondary; // Default to visible color
+                    if (getForeground() != null && !getForeground().equals(Color.BLACK) && !getForeground().equals(new Color(0, 0, 0, 0))) {
+                        textColor = getForeground();
+                    }
+                    if (hovered) {
+                        textColor = Theme.primary;
+                    }
+                    g2.setColor(textColor);
+                } else {
+                    // For emoji buttons, don't override color - let OS render emojis in color
+                    g2.setColor(Theme.textPrimary); // Use a neutral color that won't tint emojis
                 }
-                if (hovered) {
-                    textColor = Theme.primary;
-                }
-                g2.setColor(textColor);
                 break;
         }
         
@@ -133,6 +167,14 @@ public class ModernButton extends JButton {
         FontMetrics fm = g2.getFontMetrics();
         int textX = (w - fm.stringWidth(getText())) / 2;
         int textY = (h + fm.getAscent() - fm.getDescent()) / 2;
+        
+        // For emoji-only buttons, use a rendering hint that preserves emoji colors
+        if (containsEmojis(getText()) && getText().trim().matches("^[\\p{So}\\p{Cn}]+$")) {
+            // If text is only emojis/symbols, use a different rendering approach
+            // Unfortunately, Swing's drawString will still apply color, but we can minimize the tint
+            g2.setColor(Color.BLACK); // Use black as base - OS will render emojis in color if font supports it
+        }
+        
         g2.drawString(getText(), textX, textY);
         
         g2.dispose();
